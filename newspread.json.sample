@@ -1,0 +1,11 @@
+{
+    "sid": "long excel id",
+    "sn": 0,
+    "newsid": "",
+  "indexcol": "A2:A",
+  "colequivals": ["spreadsheetcol1=f_col1", "spreadsheetcool2=f_col2", "spreadsheetcol5=f_col5"],
+  "jsfile": "populator.js",
+  "f": "function name (with one argument, ie for each row of indexcol) to call",
+  "fh": "function that returns header of row of populator",
+  "overwrite": false
+}
