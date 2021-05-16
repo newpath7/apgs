@@ -1,5 +1,6 @@
 credentials.json
 *~
-newspread.json
+newspread.*
 token.json
 node_modules
+test.js

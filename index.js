@@ -95,67 +95,70 @@ function getNewToken(oAuth2Client, callback) {
 async function autoPopulateSheet(auth) {
     const sheets = google.sheets({version: 'v4', auth });
     try {
-    const response = (await sheets.spreadsheets.sheets.copyTo({
+	await sheets.spreadsheets.sheets.copyTo({
 	spreadsheetId: config.sid,
 	sheetId: config.sn,
 	resource: {
 	    destinationSpreadsheetId: config.sid,
 	},
-    }));
-	const indices = (await sheets.spreadsheets.values.get({
+	}).then(async (response) => {
+	    await sheets.spreadsheets.values.get({
 		spreadsheetId: config.sid,
 		range: response.data.title + '!' + config.indexcolrng,
-	})).data;
-		  const getter = require(config.jsfile);
-	    let lvs = [];
-	    let rvs = [];
-	    let lrvs = [];
-	    config.colequivals.forEach(function (v) {
+	    }).then(async (svires) => {
+		const indices = svires.data;
+		const getter = require(config.jsfile);
+		let lvs = [];
+		let rvs = [];
+		let lrvs = [];
+		config.colequivals.forEach(function (v) {
 		    let [lv, rv] = v.split("=");
 		    lrvs[rv] = lv;
-	    });
-	    const sheetcols = (await sheets.spreadsheets.values.get({
+		});
+		await sheets.spreadsheets.values.get({
 		    spreadsheetId: config.sid,
 		    range: response.data.title + '!' + '1:1',
-	    })).data;
-		sheetcols.values[0].forEach(function (m, i) {
+		}).then(async (scolres) => {
+		    sheetcols = scolres.data;
+		    sheetcols.values[0].forEach(function (m, i) {
 			lvs[m] = i;
-		});
-		getter[config.fh]().forEach(function (m, i) {
+		    });
+		    getter[config.fh]().forEach(function (m, i) {
 			if (typeof lvs[lrvs[m]] !== 'undefined')
-				rvs[i] = lvs[lrvs[m]];
-		});
-		let sheeti = 2;  /* first row must have header */
-		  indices.values.forEach(async function f(un) {
-		/* GET VALS */
-		  	let gettmp = await getter[config.f](un);
-   			let sheetrow = (await sheets.spreadsheets.values.get({
-		           spreadsheetId: config.sid,
-		           range: response.data.title + '!' + sheeti + ':' + sheeti,
-		       })).data;
-			rvs.forEach(function (m, i) {
+			    rvs[i] = lvs[lrvs[m]];
+		    });
+		    let sheeti = 2;  /* first row must have header */
+
+		    for await (let un of indices.values) {
+		    irange = response.data.title + '!' + sheeti + ':' + sheeti;
+   			let m = await sheets.spreadsheets.values.get({
+			    spreadsheetId: config.sid,
+			    range: irange,}).then(async (svgres) => {
+				let sheetrow = svgres.data;
+				await getter[config.f](un[0]).then(async (gettmp) => {
+				    rvs.forEach(function (m, i) {
 					if (config.overwrite === false) {
-							if (!sheetrow.values[0][m]) {
-									sheetrow.values[0][m] = gettmp[i];
-							}
-					} else {
-							sheetrow.values[0][m] = gettmp[i];
-						}
-			});
-				sheets.spreadsheets.values.update({
-						spreadsheetId: config.sid,
+					    if (!sheetrow.values[0][m])
+						sheetrow.values[0][m] = gettmp[i];
+					    else
+						sheetrow.values[0][m] = gettmp[i];
+					}
+				    });
+				    await sheets.spreadsheets.values.update({
+					spreadsheetId: config.sid,
 					range: response.data.title + '!' + sheeti + ':' + sheeti,
 					valueInputOption: "USER_ENTERED",
-
-					resource: { values: sheetrow.values}}, (err, result) => {
-							if (err) {
-									console.log(err);
-							} else {
-								console.log('.');
-							}
+					resource: { values: sheetrow.values}}).then(async (hh) => {
+					    process.stdout.write(".");
+					    sheeti++;
 					});
-				  sheeti++;
-			});
+				});
+			    });
+		    }
+		});
+	    });
+	});
+    	process.stdout.write("\n");
     } catch(err) {
 	    console.log("Error reading spread sheet");
 	console.error(err);

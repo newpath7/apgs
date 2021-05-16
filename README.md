@@ -24,7 +24,7 @@ Create a new project
    rows (for example, "A2:A"  in a spread sheet where first column contains usernames and first row has header labels of worksheet)
 * colequivals = array of strings - each element is like "shl=scrhl" where shl is the header label from the Google Spread 
    Sheet and scrhl is the header label from the getter script (the getter script function must return a javascript array representing the row)
- * f = string - Name of one argument function in getter script that returns corresponding row of the key as an ordered array
+ * f = string - Name of an asynchronous, one argument function in getter script that returns corresponding row of the key as an ordered array
  * fh = string - Name of zero argument function of getter script to return just ordered array of header fields
  * overwrite = boolean - False means that if a cell in the Google Sheets already has a value, then this value will not be overwritten 
 
